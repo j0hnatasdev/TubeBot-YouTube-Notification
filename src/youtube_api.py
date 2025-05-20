@@ -133,7 +133,7 @@ class YouTubeAPI:
         except Exception as e:
             print(f"Erro ao obter informações do canal: {str(e)}")
             return None
-
+            
     def get_old_video(self, channel_url, include_shorts=False):
         """Obtém um vídeo antigo que ainda não foi enviado"""
         try:

@@ -294,6 +294,60 @@ class YouTubeBot(commands.Bot):
                         )
                         
                         await message.channel.send(embed=embed)
+
+                        # Faz uma verificação imediata após a configuração
+                        try:
+                            channel_info = self.youtube.get_channel_info(
+                                config['youtube_channel_url'],
+                                include_shorts=config['include_shorts']
+                            )
+                            if channel_info:  # Se encontrou qualquer vídeo (novo ou antigo)
+                                # Obtém o canal do Discord
+                                channel = self.get_channel(config['notification_channel'])
+                                if channel:
+                                    # Define o título baseado se é um novo vídeo ou não
+                                    status = "🎥 Novo Vídeo!" if channel_info.get('is_new_video', False) else "📺 Vídeo Anterior"
+                                    
+                                    # Cria o embed bonito
+                                    embed = discord.Embed(
+                                        url=channel_info['video_url'],
+                                        color=discord.Color.red() if channel_info.get('is_new_video', False) else discord.Color.blue()
+                                    )
+                                    
+                                    # Adiciona a thumbnail como imagem principal
+                                    embed.set_image(url=channel_info['thumbnail_url'])
+                                    
+                                    # Adiciona o autor (canal do YouTube) com logo
+                                    embed.set_author(
+                                        name=channel_info['channel_name'],
+                                        url=f"https://www.youtube.com/@{channel_info['channel_name'].replace(' ', '')}",
+                                        icon_url=channel_info['channel_icon']
+                                    )
+                                    
+                                    # Adiciona o título do vídeo com link
+                                    embed.add_field(
+                                        name="",
+                                        value=f"[{channel_info['video_title']}]({channel_info['video_url']})",
+                                        inline=False
+                                    )
+                                    
+                                    # Adiciona informações do vídeo
+                                    embed.add_field(
+                                        name="",
+                                        value=f"**{status}** • {channel_info['published_text']}",
+                                        inline=False
+                                    )
+                                    
+                                    # Adiciona o footer apenas com o ícone
+                                    embed.set_footer(
+                                        text="",
+                                        icon_url="https://www.youtube.com/favicon.ico"
+                                    )
+                                    
+                                    # Envia apenas o embed
+                                    await channel.send(embed=embed)
+                        except Exception as e:
+                            print(f"Erro ao verificar vídeos após configuração: {str(e)}")
                     else:
                         await message.channel.send("❌ Por favor, digite `1` para vídeos normais ou `2` para vídeos normais e shorts.")
             
